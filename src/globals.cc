@@ -79,7 +79,7 @@ Task extcomin_flipping_task()
 
 Task deillumination_task()
 {
-    constexpr auto darken_after = 1000;
+    constexpr auto darken_after = 5000;
 
     static auto last_lightup = millis();
     while (true)
@@ -98,7 +98,7 @@ Task deillumination_task()
             }
         }
 
-        if (millis() - last_lightup > 5000)
+        if (millis() - last_lightup >= darken_after)
         {
             display.frontlightOff();
             light_on = false;

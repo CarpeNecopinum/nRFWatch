@@ -7,7 +7,7 @@ inline int8_t millis_compare(uint32_t a, uint32_t b)
     if (a == b)
         return 0;
 
-    return (a >= b) == (a - b < HALF) ? 1 : -1;
+    return (a - b < HALF) ? 1 : -1;
 }
 
 inline uint32_t millis_max(uint32_t a, uint32_t b)
