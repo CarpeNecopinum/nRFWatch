@@ -2,6 +2,7 @@
 
 #include "Display.hh"
 #include "Clock.hh"
+#include "Inputs.hh"
 
 struct DigitalOutPin
 {
@@ -29,3 +30,5 @@ extern bool light_on;
 void start_background_tasks();
 
 extern Clock localclock;
+
+extern Inputs inputs;

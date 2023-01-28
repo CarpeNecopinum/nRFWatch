@@ -9,6 +9,7 @@
 
 #include "apps/ClockApp.hh"
 #include "apps/GPSListenerApp.hh"
+#include "Inputs.hh"
 
 void setup()
 {
@@ -31,11 +32,11 @@ void setup()
         .second = 0,
     });
 
-    // ClockApp clock;
-    // clock.enable();
+    ClockApp clock;
+    clock.enable();
 
-    GPSListenerApp gps;
-    gps.enable();
+    // GPSListenerApp gps;
+    // gps.enable();
 
     run_scheduler();
 }

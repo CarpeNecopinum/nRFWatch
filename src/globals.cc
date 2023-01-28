@@ -1,6 +1,7 @@
 #include "globals.hh"
 #include "Scheduler.hh"
 #include "Task.hh"
+#include "Inputs.hh"
 
 constexpr auto VIBRATE_PIN = 19; // == PIN 0.19
 constexpr auto EXTCOMIN = 6;
@@ -12,6 +13,8 @@ DigitalOutPin vibrate{VIBRATE_PIN};
 DigitalOutPin extcomin{EXTCOMIN};
 
 Clock localclock;
+
+Inputs inputs;
 
 Task battery_indicator_task()
 {
@@ -76,15 +79,30 @@ Task extcomin_flipping_task()
 
 Task deillumination_task()
 {
+    constexpr auto darken_after = 1000;
+
     static auto last_lightup = millis();
     while (true)
     {
-        if (millis() - last_lightup > 15000)
+        co_yield ContinuationCondition{
+            millis() + darken_after,
+            0 | InputFlag::BUTTON_PRESS};
+
+        if (inputs.current() & InputFlag::BUTTON_PRESS)
+        {
+            last_lightup = millis();
+            if (!light_on)
+            {
+                display.frontlightOn();
+                light_on = true;
+            }
+        }
+
+        if (millis() - last_lightup > 5000)
         {
             display.frontlightOff();
             light_on = false;
         }
-        co_yield Task::resume_in(1000);
     }
 }
 
@@ -98,4 +116,5 @@ void start_background_tasks()
 
     start(battery_indicator_task());
     start(extcomin_flipping_task());
+    start(deillumination_task());
 }

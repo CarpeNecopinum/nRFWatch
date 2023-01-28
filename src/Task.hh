@@ -8,41 +8,10 @@
 
 struct ContinuationCondition
 {
-    enum class Type
-    {
-        Immediately,
-        Millis
-    };
-    Type type;
-
-    union
-    {
-        uint32_t millis;
-    } mData;
-
-    static ContinuationCondition Immediately()
-    {
-        return ContinuationCondition{Type::Immediately};
-    }
-    static ContinuationCondition Millis(uint32_t millis)
-    {
-        return ContinuationCondition{Type::Millis, millis};
-    }
+    uint32_t at_millis = -1;
+    uint8_t inputs_mask = 0;
 
     bool should_resume() const;
-
-    uint32_t next_resume() const
-    {
-        switch (type)
-        {
-        case Type::Immediately:
-            return 0;
-        case Type::Millis:
-            return mData.millis;
-        default:
-            return 0;
-        }
-    }
 };
 
 struct Task
@@ -52,7 +21,9 @@ struct Task
 
     struct promise_type
     {
-        ContinuationCondition mCondition = ContinuationCondition::Immediately();
+        promise_type();
+
+        ContinuationCondition mCondition;
         std::exception_ptr mException;
 
         Task get_return_object()
@@ -64,14 +35,13 @@ struct Task
         void unhandled_exception() { mException = std::current_exception(); }
         std::suspend_always yield_value(ContinuationCondition from)
         {
-            mCondition = from; // caching the result in promise
+            mCondition = from;
             return {};
         }
         void return_void() {}
     };
 
     handle_type mHandle;
-    uint32_t mNextResume;
     bool mEnabled = false;
 
     Task(handle_type h)
@@ -80,14 +50,13 @@ struct Task
     }
     Task(const Task &) = delete;
     Task &operator=(const Task &) = delete;
-    Task(Task &&other) noexcept : mHandle(other.mHandle), mNextResume(other.mNextResume), mEnabled(other.mEnabled)
+    Task(Task &&other) noexcept : mHandle(other.mHandle), mEnabled(other.mEnabled)
     {
         other.mHandle = nullptr;
     }
     Task &operator=(Task &&other) noexcept
     {
         std::swap(mHandle, other.mHandle);
-        mNextResume = other.mNextResume;
         mEnabled = other.mEnabled;
         return *this;
     }
@@ -97,15 +66,11 @@ struct Task
             mHandle.destroy();
     }
 
-    uint32_t maybe_resume()
+    ContinuationCondition maybe_resume()
     {
-        // if (mHandle.promise().mValue <= millis())
-
         if (mHandle.promise().mCondition.should_resume())
             resume();
-        // mHandle();
-        // return mHandle.promise().mCondition.next_resume();
-        return mNextResume;
+        return mHandle.promise().mCondition;
     }
 
     void resume()
@@ -113,7 +78,11 @@ struct Task
         mHandle();
         if (mHandle.promise().mException)
             std::rethrow_exception(mHandle.promise().mException);
-        mNextResume = mHandle.promise().mCondition.next_resume();
+    }
+
+    ContinuationCondition condition() const
+    {
+        return mHandle.promise().mCondition;
     }
 
     static ContinuationCondition resume_at(uint32_t millis);
