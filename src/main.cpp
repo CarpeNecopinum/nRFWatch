@@ -32,8 +32,8 @@ void setup()
         .second = 0,
     });
 
-    // ClockApp clock;
-    // clock.enable();
+    ClockApp clock;
+    clock.enable();
 
     // GPSListenerApp gps;
     // gps.enable();

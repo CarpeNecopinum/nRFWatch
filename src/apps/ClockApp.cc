@@ -12,7 +12,7 @@ ClockApp::ClockApp()
         // constexpr auto center_x = 176 / 2;
         // constexpr auto center_y = 176 / 2;
 
-        constexpr auto bg = COLOR_BLACK;
+        constexpr auto bg = COLOR_GREEN;
         while (true)
         {
             display.fillRect(0, TOPBAR_SIZE, 176, 176 - TOPBAR_SIZE, bg);
@@ -60,6 +60,7 @@ ClockApp::ClockApp()
             // display.print(":");
             // display.print(time.tm_sec);
 
+            // display.refresh();
             for (auto i = TOPBAR_SIZE; i < DISPLAY_HEIGHT; i++)
             {
                 display.refreshLine(i);

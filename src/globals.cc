@@ -3,6 +3,8 @@
 #include "Task.hh"
 #include "Inputs.hh"
 
+#include <nrf52.h>
+
 constexpr auto VIBRATE_PIN = 19; // == PIN 0.19
 constexpr auto EXTCOMIN = 6;
 
@@ -10,7 +12,7 @@ Display display;
 bool light_on = false;
 
 DigitalOutPin vibrate{VIBRATE_PIN};
-DigitalOutPin extcomin{EXTCOMIN};
+//
 
 Clock localclock;
 
@@ -67,15 +69,44 @@ Task frame_drawing_task()
     }
 }
 
-Task extcomin_flipping_task()
+void setup_extcomin_pwm()
 {
-    static char last_state = LOW;
-    while (true)
-    {
-        extcomin = (last_state ^= 1);
-        co_yield Task::resume_in(light_on ? 5 : 250);
-    }
+    pinMode(EXTCOMIN, OUTPUT);
+    analogWrite(EXTCOMIN, 0);
+
+    auto pwm = NRF_PWM2;
+    pwm->PSEL.OUT[0] = EXTCOMIN;
+    pwm->PSEL.OUT[1] = EXTCOMIN;
+    pwm->PSEL.OUT[2] = EXTCOMIN;
+    pwm->PSEL.OUT[3] = EXTCOMIN;
+    pwm->ENABLE = 1;
+    pwm->PRESCALER = PWM_PRESCALER_PRESCALER_DIV_128; //(125kHz)
+    pwm->MODE = PWM_MODE_UPDOWN_Up;
+    // 120Hz frequency
+    pwm->COUNTERTOP = 125000 / 60;
+    pwm->LOOP = 0;
+    pwm->DECODER = ((uint32_t)PWM_DECODER_LOAD_Common << PWM_DECODER_LOAD_Pos) | ((uint32_t)PWM_DECODER_MODE_RefreshCount << PWM_DECODER_MODE_Pos);
+    static uint16_t seq = pwm->COUNTERTOP >> 1;
+    pwm->SEQ[0].PTR = (uint32_t)&seq;
+    pwm->SEQ[0].CNT = 1;
+    pwm->SEQ[0].REFRESH = 1;
+    pwm->SEQ[0].ENDDELAY = 0;
+    pwm->TASKS_SEQSTART[0] = 0x1UL;
 }
+
+// This was cool as a starting off point and an excuse to build fine-grained scheduling
+// but it's inferior to just abusing PWM for the EXTCOMIN pin.
+// Task extcomin_flipping_task()
+// {
+//     static DigitalOutPin extcomin{EXTCOMIN};
+//     static char last_state = LOW;
+
+//     while (true)
+//     {
+//         extcomin = (last_state ^= 1);
+//         co_yield Task::resume_in(light_on ? 5 : 250);
+//     }
+// }
 
 Task deillumination_task()
 {
@@ -114,7 +145,8 @@ void start_background_tasks()
         enable_task(pid);
     };
 
+    setup_extcomin_pwm();
     start(battery_indicator_task());
-    start(extcomin_flipping_task());
+    // start(extcomin_flipping_task());
     start(deillumination_task());
 }
