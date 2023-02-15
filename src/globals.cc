@@ -79,7 +79,7 @@ Task extcomin_flipping_task()
 
 Task deillumination_task()
 {
-    constexpr auto darken_after = 5000;
+    constexpr auto darken_after = 60000;
 
     static auto last_lightup = millis();
     while (true)

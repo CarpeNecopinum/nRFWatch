@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <stdint.h>
 
 struct InputFlag
@@ -12,24 +13,30 @@ struct InputFlag
         SWIPE_RIGHT = 1 << 3,
         SWIPE_UP = 1 << 4,
         SWIPE_DOWN = 1 << 5,
-        TAP = 1 << 6
+        TAP = 1 << 6,
+        DOUBLE_TAP = 1 << 7,
     };
 };
 using InputFlags = uint8_t;
 
+class TouchScreen;
 class Inputs
 {
 public:
     Inputs();
+    ~Inputs();
     uint8_t current() const { return mFlags; }
+
+    void begin();
 
     // void enable();
     // void disable();
 
     void pumpEvents();
-    void setupInterrupts();
 
 private:
     InputFlags mFlags = 0;
+    std::unique_ptr<TouchScreen> mScreen;
+    void setupInterrupts();
     // uint32_t mPid = -1;
 };

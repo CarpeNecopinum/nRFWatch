@@ -30,7 +30,7 @@ void disable_task(uint32_t pid)
 
 void run_scheduler()
 {
-    inputs.setupInterrupts();
+    inputs.begin();
     while (true)
     {
         uint32_t next_wakeup = millis() + 0x80000000;
@@ -46,11 +46,11 @@ void run_scheduler()
             next_flags |= cond.inputs_mask;
         }
 
-        // display.fillRect(0, 0, 176, 176, COLOR_BLUE);
-        // display.setCursor(0, 20);
-        // display.print(inputs.current());
-        // display.refresh();
-        // delay(1000);
+        if (light_on)
+        {
+            // the touchscreen won't send interrupts, so we can't sleep for long while the screen is on
+            next_wakeup = millis_min(next_wakeup, millis() + 100);
+        }
 
         do
         {

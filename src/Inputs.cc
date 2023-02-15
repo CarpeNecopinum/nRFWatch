@@ -2,6 +2,7 @@
 #include <Arduino.h>
 
 #include "globals.hh"
+#include "TouchScreen.hh"
 
 volatile InputFlags mNextFlags = 0;
 
@@ -19,17 +20,30 @@ void Inputs::setupInterrupts()
     pinMode(17, INPUT_PULLUP);
     attachInterrupt(17, button_ISR, FALLING);
 
+    mScreen->begin();
+
     initialized = true;
+}
+
+void Inputs::begin()
+{
+    setupInterrupts();
 }
 
 Inputs::Inputs()
 {
-    setupInterrupts();
+    mScreen = std::make_unique<TouchScreen>();
+}
+
+Inputs::~Inputs()
+{
 }
 
 void Inputs::pumpEvents()
 {
     mFlags = mNextFlags;
+    mScreen->pumpEvents();
+    mFlags |= mScreen->lastEvent();
     mNextFlags = 0;
 }
 

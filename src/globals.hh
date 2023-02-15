@@ -19,6 +19,20 @@ struct DigitalOutPin
     uint32_t mPin;
 };
 
+struct DigitalInPin
+{
+    DigitalInPin(uint8_t _pin, uint32_t mode = INPUT_PULLUP) : pin(_pin)
+    {
+        pinMode(pin, mode);
+    }
+    operator bool() const
+    {
+        return digitalRead(pin);
+    }
+
+    uint32_t pin;
+};
+
 extern DigitalOutPin vibrate;
 extern DigitalOutPin extcomin;
 

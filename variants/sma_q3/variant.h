@@ -102,8 +102,8 @@ extern "C"
  */
 #define WIRE_INTERFACES_COUNT 1
 
-#define PIN_WIRE_SDA (22u)
-#define PIN_WIRE_SCL (23u)
+#define PIN_WIRE_SDA (33u)
+#define PIN_WIRE_SCL (34u)
 
     static const uint8_t SDA = PIN_WIRE_SDA;
     static const uint8_t SCL = PIN_WIRE_SCL;
