@@ -36,6 +36,18 @@ void run_scheduler()
         uint32_t next_wakeup = millis() + 0x80000000;
         InputFlags next_flags = 0;
 
+        // if (inputs.current() & (InputFlag::SWIPE_DOWN | InputFlag::SWIPE_UP))
+        // {
+        //     display.fillRect(0, TOPBAR_SIZE, 176, 176 - TOPBAR_SIZE, COLOR_BLUE);
+        //     display.setCursor(0, 12);
+        //     display.setTextColor(COLOR_WHITE);
+        //     display.setTextSize(2);
+        //     display.print(inputs.current());
+        //     display.setTextSize(1);
+        //     display.refresh();
+        //     delay(100);
+        // }
+
         for (auto &task : tasks)
         {
             if (!task.mEnabled)

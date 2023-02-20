@@ -110,9 +110,29 @@ TouchScreen::~TouchScreen()
     // touch_screen_instance = nullptr;
 }
 
+struct TouchInfo
+{
+    uint8_t reserved1;
+    uint8_t gesture_id;
+    uint8_t event_type : 2;
+    uint8_t reserved2 : 2;
+    uint8_t x_msb : 4;
+    uint8_t x_lsb;
+    uint8_t reserved3 : 4;
+    uint8_t y_msb : 4;
+    uint8_t y_lsb;
+
+    uint8_t dummy[3];
+};
+static_assert(sizeof(TouchInfo) == 9, "touch_state is the wrong number of bytes");
+
 bool TouchScreen::pumpEvents()
 {
     mInputFlags = 0;
+
+    if (!light_on)
+        return false;
+
     // if (mSleeping)
     //     return false;
 
@@ -122,36 +142,78 @@ bool TouchScreen::pumpEvents()
 
     // I could get a whole struct of stuff here,
     // but I only really care about the gesture ID
-    uint8_t gesture_id;
-    if (!read_i2c_addr(&gesture_id, 1, ADDR, 0x01))
-    {
-        // mSleeping = true;
-        return false;
-    }
+    // TouchInfo touch_state;
+
+    // if (!read_i2c_addr((uint8_t *)&touch_state, sizeof(touch_state), ADDR, 0))
+    // {
+    //     // mSleeping = true;
+    //     return false;
+    // }
+
     // uint8_t no_gesture = 0x00;
     // write_i2c_addr(&no_gesture, 1, ADDR, 0x01);
 
-    switch (gesture_id)
+    char buf[9] = {0};
+    if (!read_i2c_addr((uint8_t *)buf, 9, ADDR, 0))
+        return false;
+
+    uint8_t gesture = buf[1];
+    uint8_t event = buf[3] >> 6;
+    uint16_t x = ((buf[3] & 0x0f) << 8) | buf[4];
+    uint16_t y = ((buf[5] & 0x0f) << 8) | buf[6];
+
+    uint8_t flag = 0;
+    if (event == 0x01 /* UP */)
     {
-    case 0x01:
-        mInputFlags = InputFlag::SWIPE_DOWN;
-        break;
-    case 0x02:
-        mInputFlags = InputFlag::SWIPE_UP;
-        break;
-    case 0x03:
-        mInputFlags = InputFlag::SWIPE_LEFT;
-        break;
-    case 0x04:
-        mInputFlags = InputFlag::SWIPE_RIGHT;
-        break;
-    case 0x05:
-        mInputFlags = InputFlag::TAP;
-        break;
-    case 0x06:
-        mInputFlags = InputFlag::DOUBLE_TAP;
-        break;
+        switch (gesture)
+        {
+        case 0x01:
+            flag = InputFlag::SWIPE_DOWN;
+            break;
+        case 0x02:
+            flag = InputFlag::SWIPE_UP;
+            break;
+        case 0x03:
+            flag = InputFlag::SWIPE_LEFT;
+            break;
+        case 0x04:
+            flag = InputFlag::SWIPE_RIGHT;
+            break;
+        case 0x05:
+            flag = InputFlag::TAP;
+            break;
+        case 0x06:
+            flag = InputFlag::DOUBLE_TAP;
+            break;
+        }
     }
+
+    // Don't send repeated events
+    if (flag != mOldFlags)
+    {
+        mInputFlags = flag;
+        mOldFlags = flag;
+    }
+
+    // display.fillRect(0, TOPBAR_SIZE, 176, 176 - TOPBAR_SIZE, COLOR_RED);
+    // display.setCursor(0, 12);
+    // display.setTextColor(COLOR_WHITE);
+    // display.setTextSize(2);
+    // display.print(gesture);
+    // display.print("\n");
+    // display.print(event);
+    // display.print("\n");
+    // display.print(x);
+    // display.print("\n");
+    // display.print(y);
+    // display.print("\n");
+    // display.print(mInputFlags);
+    // display.print("\n");
+    // display.print(mOldFlags);
+    // display.print("\n");
+    // display.setTextSize(1);
+    // display.refresh();
+    // delay(300);
 
     // if (mInputFlags == 0)
     // {

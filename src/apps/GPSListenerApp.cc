@@ -67,11 +67,12 @@ GPSListenerApp::GPSListenerApp()
                     display.print("\n");
                     display.print(gps_data.c_str());
    
-                    for (int i = TOPBAR_SIZE; i < 176; i++) {
-                        display.refreshLine(i);
-                        if (i % 10 == 9)
-                            co_yield Task::resume_asap();
-                    }       
+                    // for (int i = TOPBAR_SIZE; i < 176; i++) {
+                    //     display.refreshLine(i);
+                    //     if (i % 10 == 9)
+                    //         co_yield Task::resume_asap();
+                    // }       
+                    display.refresh();
                 } 
 
                 // display.fillRect(0, TOPBAR_SIZE, 176, 176 - TOPBAR_SIZE, bg);

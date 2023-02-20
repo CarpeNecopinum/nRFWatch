@@ -11,6 +11,8 @@
 #include "apps/GPSListenerApp.hh"
 #include "Inputs.hh"
 
+#include "AppSwitcher.hh"
+
 void setup()
 {
     display.begin();
@@ -33,10 +35,12 @@ void setup()
     });
 
     ClockApp clock;
-    clock.enable();
+    // clock.enable();
+    GPSListenerApp gps;
 
-    // GPSListenerApp gps;
-    // gps.enable();
+    AppSwitcher::init();
+    AppSwitcher::register_app(&clock);
+    AppSwitcher::register_app(&gps);
 
     run_scheduler();
 }

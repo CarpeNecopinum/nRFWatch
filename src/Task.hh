@@ -88,4 +88,5 @@ struct Task
     static ContinuationCondition resume_at(uint32_t millis);
     static ContinuationCondition resume_asap();
     static ContinuationCondition resume_in(uint32_t _millis);
+    static ContinuationCondition resume_on_input(uint8_t mask);
 };

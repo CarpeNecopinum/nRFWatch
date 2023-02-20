@@ -34,14 +34,17 @@ Task battery_indicator_task()
         display.print("Battery: ");
         display.print(voltage);
         display.print("V");
+        display.print("   I: ");
+        display.print(inputs.current());
 
         for (auto i = 0; i < TOPBAR_SIZE; i++)
         {
             display.refreshLine(i);
-            co_yield Task::resume_asap();
+            // co_yield Task::resume_asap();
         }
 
-        co_yield Task::resume_in(1000);
+        // co_yield Task::resume_in(1000);
+        co_yield Task::resume_asap();
     }
 }
 

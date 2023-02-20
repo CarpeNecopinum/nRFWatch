@@ -27,4 +27,5 @@ private:
     bool mEventsWaiting = false;
     bool mSleeping = false;
     InputFlags mInputFlags;
+    InputFlags mOldFlags = 0;
 };
